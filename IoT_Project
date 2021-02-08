@@ -1,0 +1,59 @@
+  
+#define BLYNK_PRINT Serial
+
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <BlynkSimpleEsp32.h> // 
+
+#include "DHT.h"
+
+#define DHTPIN 12  
+#define DHTTYPE DHT11  
+DHT dht(DHTPIN, DHTTYPE);
+char auth[] = "cCod8J6RDQnW7kRvPXt0nSqraCd_Joxa";
+char ssid[] = "3BB_2.4GHz";
+char pass[] = "1111100000";
+
+const int pingPin = 25;
+int inPin = 26 ;
+
+void setup()
+{
+  // Debug console
+  Serial.begin(9600);
+  pinMode(5,OUTPUT);
+  pinMode(18,OUTPUT);
+  Blynk.begin(auth, ssid, pass);
+  Serial.println();
+  Serial.println("Status\tHumidity (%)\tTemperature (C)\t(F)");
+  dht.begin();
+}
+
+void loop()
+{
+  float humidity = dht.readHumidity();
+  float temperature = dht.readTemperature();
+  long duration, cm;
+  pinMode(pingPin, OUTPUT);
+  digitalWrite(pingPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(pingPin, HIGH);
+  delayMicroseconds(5);
+  digitalWrite(pingPin, LOW);
+  pinMode(inPin, INPUT);
+  duration = pulseIn(inPin, HIGH);
+  cm = microsecondsToCentimeters(duration);
+  Blynk.run();
+  delay(100);
+  Blynk.virtualWrite(5,HIGH);
+  Blynk.virtualWrite(18,HIGH);
+  Blynk.virtualWrite(V0, temperature);
+  Blynk.virtualWrite(V1, humidity);
+  Blynk.virtualWrite(V2, cm);
+
+}
+
+long microsecondsToCentimeters(long microseconds)
+{
+return microseconds / 29 / 2;
+}
